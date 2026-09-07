@@ -21,6 +21,12 @@ func main() {
 		Usage:   "add a license to a project",
 		Version: Version,
 		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:        "interactive",
+				Aliases:     []string{"i"},
+				Usage:       "recommend a license by asking about the project",
+				Destination: &options.Interactive,
+			},
 			&cli.StringFlag{
 				Name:        "license",
 				Aliases:     []string{"l"},
@@ -56,6 +62,10 @@ func main() {
 			args := command.Args().Slice()
 			if len(args) != 0 {
 				return fmt.Errorf("unexpected arguments: %q", args)
+			}
+
+			if options.Interactive && options.License != "" {
+				return fmt.Errorf("--interactive cannot be used with --license")
 			}
 
 			return run(options)

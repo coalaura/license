@@ -14,6 +14,7 @@ import (
 )
 
 type Options struct {
+	Interactive bool
 	License     string
 	Author      string
 	Year        string
@@ -54,7 +55,7 @@ func generateLicense(options Options, directory string, now time.Time) error {
 	if found {
 		prompt := fmt.Sprintf("Replace existing %q?", existing)
 
-		confirmed, err := log.Confirm(prompt, false)
+		confirmed, err := log.ConfirmWithEcho(prompt, false, " ")
 		if err != nil {
 			return fmt.Errorf("confirm license replacement: %w", err)
 		}
@@ -141,7 +142,21 @@ func generateLicense(options Options, directory string, now time.Time) error {
 func promptForLicense(settings Options, directory string, now time.Time) (License, error) {
 	var license License
 
-	if settings.License != "" {
+	if settings.Interactive {
+		name, err := recommendLicense()
+		if err != nil {
+			return License{}, err
+		}
+
+		var found bool
+
+		license, found = findLicense(name)
+		if !found {
+			return License{}, fmt.Errorf("recommended unknown license %q", name)
+		}
+
+		log.Printf("Recommended license: %s - %s\n", license.Name, license.Summary)
+	} else if settings.License != "" {
 		var found bool
 
 		license, found = findLicense(settings.License)
@@ -192,6 +207,55 @@ func promptForLicense(settings Options, directory string, now time.Time) (Licens
 	}
 
 	return license, nil
+}
+
+func recommendLicense() (string, error) {
+	copyleft, err := log.ConfirmWithEcho("Must modified versions remain open source?", false, " ")
+	if err != nil {
+		return "", fmt.Errorf("ask about copyleft: %w", err)
+	}
+
+	if !copyleft {
+		patentGrant, err := log.ConfirmWithEcho("Do you want an explicit patent grant from contributors?", false, " ")
+		if err != nil {
+			return "", fmt.Errorf("ask about patent protection: %w", err)
+		}
+
+		if patentGrant {
+			return "apache", nil
+		}
+
+		return "mit", nil
+	}
+
+	networkUse, err := log.ConfirmWithEcho("Will users interact with the software primarily over a network?", false, " ")
+	if err != nil {
+		return "", fmt.Errorf("ask about network use: %w", err)
+	}
+
+	if networkUse {
+		return "agpl", nil
+	}
+
+	proprietaryLinking, err := log.ConfirmWithEcho("Is this a library that proprietary applications may link to?", false, " ")
+	if err != nil {
+		return "", fmt.Errorf("ask about proprietary linking: %w", err)
+	}
+
+	if proprietaryLinking {
+		return "lgpl", nil
+	}
+
+	fileLevel, err := log.ConfirmWithEcho("Should open-source requirements apply only to modified files?", false, " ")
+	if err != nil {
+		return "", fmt.Errorf("ask about file-level copyleft: %w", err)
+	}
+
+	if fileLevel {
+		return "mpl", nil
+	}
+
+	return "gpl", nil
 }
 
 func promptForProperty(property Property, directory string, now time.Time) (string, error) {

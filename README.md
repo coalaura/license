@@ -29,6 +29,15 @@ Choose a license, then complete any requested fields. Suggested values appear in
 
 If a license file already exists, `license` asks for confirmation before replacing it. Declining leaves the existing file unchanged.
 
+To have the tool recommend a license, enable interactive recommendation mode:
+
+```sh
+license --interactive
+license -i
+```
+
+The tool asks a short series of yes/no questions about copyleft, patent protection, network use, library linking, and file-level requirements, then selects the closest supported license. `--interactive` cannot be combined with `--license`.
+
 Display the installed version with either form:
 
 ```sh
