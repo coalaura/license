@@ -6,10 +6,12 @@ import (
 	"github.com/coalaura/plain"
 )
 
+var Version = "dev"
+
 var log = plain.New()
 
 func main() {
-	err := run(log)
+	err := run(log, os.Args[1:])
 	if err == nil {
 		return
 	}

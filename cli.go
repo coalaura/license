@@ -22,7 +22,17 @@ type Prompter interface {
 	SelectWithDescription(prompt string, options []plain.SelectOption) (int, error)
 }
 
-func run(prompter Prompter) error {
+func run(prompter Prompter, args []string) error {
+	if len(args) == 1 && (args[0] == "--version" || args[0] == "-v") {
+		prompter.Println("license", Version)
+
+		return nil
+	}
+
+	if len(args) != 0 {
+		return fmt.Errorf("unexpected arguments: %q", args)
+	}
+
 	directory, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("get working directory: %w", err)
