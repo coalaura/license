@@ -2,7 +2,10 @@ module github.com/coalaura/license
 
 go 1.27.0
 
-require github.com/coalaura/plain v1.5.3
+require (
+	github.com/coalaura/plain v1.5.3
+	github.com/urfave/cli/v3 v3.11.0
+)
 
 require (
 	github.com/coalaura/atom v0.1.0 // indirect

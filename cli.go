@@ -13,35 +13,16 @@ import (
 	"github.com/coalaura/plain"
 )
 
-const maximumPropertyLength = 1024
-
-type Prompter interface {
-	Confirm(prompt string, defaultYes bool) (bool, error)
-	Println(a ...any)
-	Read(prompt string, max int) (string, error)
-	SelectWithDescription(prompt string, options []plain.SelectOption) (int, error)
-}
-
-func run(prompter Prompter, args []string) error {
-	if len(args) == 1 && (args[0] == "--version" || args[0] == "-v") {
-		prompter.Println("license", Version)
-
-		return nil
-	}
-
-	if len(args) != 0 {
-		return fmt.Errorf("unexpected arguments: %q", args)
-	}
-
+func run() error {
 	directory, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("get working directory: %w", err)
 	}
 
-	return generateLicense(prompter, directory, time.Now())
+	return generateLicense(directory, time.Now())
 }
 
-func generateLicense(prompter Prompter, directory string, now time.Time) error {
+func generateLicense(directory string, now time.Time) error {
 	existing, found, err := findExistingLicense(directory)
 	if err != nil {
 		return fmt.Errorf("look for an existing license: %w", err)
@@ -50,7 +31,7 @@ func generateLicense(prompter Prompter, directory string, now time.Time) error {
 	if found {
 		prompt := fmt.Sprintf("Replace existing %q?", existing)
 
-		confirmed, err := prompter.Confirm(prompt, false)
+		confirmed, err := log.Confirm(prompt, false)
 		if err != nil {
 			return fmt.Errorf("confirm license replacement: %w", err)
 		}
@@ -60,7 +41,7 @@ func generateLicense(prompter Prompter, directory string, now time.Time) error {
 		}
 	}
 
-	license, err := promptForLicense(prompter, directory, now)
+	license, err := promptForLicense(directory, now)
 	if err != nil {
 		return err
 	}
@@ -129,19 +110,19 @@ func generateLicense(prompter Prompter, directory string, now time.Time) error {
 		}
 	}
 
-	prompter.Println("Wrote LICENSE.")
+	log.Println("Wrote LICENSE.")
 
 	return nil
 }
 
-func promptForLicense(prompter Prompter, directory string, now time.Time) (License, error) {
+func promptForLicense(directory string, now time.Time) (License, error) {
 	options := make([]plain.SelectOption, len(licenses))
 
 	for index, license := range licenses {
 		options[index] = license
 	}
 
-	index, err := prompter.SelectWithDescription("Choose a license: ", options)
+	index, err := log.SelectWithDescription("Choose a license: ", options)
 	if err != nil {
 		return License{}, fmt.Errorf("select license: %w", err)
 	}
@@ -155,7 +136,7 @@ func promptForLicense(prompter Prompter, directory string, now time.Time) (Licen
 	license.Properties = make(map[Property]string, len(license.RequiredProperties))
 
 	for _, property := range license.RequiredProperties {
-		value, err := promptForProperty(prompter, property, directory, now)
+		value, err := promptForProperty(property, directory, now)
 		if err != nil {
 			return License{}, err
 		}
@@ -166,7 +147,7 @@ func promptForLicense(prompter Prompter, directory string, now time.Time) (Licen
 	return license, nil
 }
 
-func promptForProperty(prompter Prompter, property Property, directory string, now time.Time) (string, error) {
+func promptForProperty(property Property, directory string, now time.Time) (string, error) {
 	name := propertyName(property)
 	defaultValue := defaultProperty(property, directory, now)
 
@@ -177,7 +158,7 @@ func promptForProperty(prompter Prompter, property Property, directory string, n
 	}
 
 	for {
-		value, err := prompter.Read(prompt, maximumPropertyLength)
+		value, err := log.Read(prompt, 512)
 		if err != nil {
 			return "", fmt.Errorf("read %s: %w", name, err)
 		}
