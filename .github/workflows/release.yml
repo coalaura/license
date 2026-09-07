@@ -129,7 +129,9 @@ jobs:
           for binary in dist/${BINARY_NAME}-*; do
             builder sign "$binary" \
               --sign "$pfx_path" \
-              --passphrase "$COALAURA_PFX_PASSWORD"
+              --passphrase "$COALAURA_PFX_PASSWORD" \
+              --sign-chain https://wiese2.org/pki/issuing.pem \
+              --sign-chain https://wiese2.org/pki/root.pem
           done
 
           cd dist
