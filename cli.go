@@ -148,6 +148,8 @@ func promptForLicense(settings Options, directory string, now time.Time) (Licens
 		if !found {
 			return License{}, fmt.Errorf("unknown license %q", settings.License)
 		}
+
+		log.Printf("Choose a license: %s\n", license.Name)
 	} else {
 		options := make([]plain.SelectOption, len(licenses))
 
@@ -172,6 +174,10 @@ func promptForLicense(settings Options, directory string, now time.Time) (Licens
 	for _, property := range license.RequiredProperties {
 		value := settings.property(property)
 		if value != "" {
+			prompt := propertyPrompt(property, "")
+
+			log.Printf("%s%s\n", prompt, value)
+
 			license.Properties[property] = value
 
 			continue
@@ -192,11 +198,7 @@ func promptForProperty(property Property, directory string, now time.Time) (stri
 	name := propertyName(property)
 	defaultValue := defaultProperty(property, directory, now)
 
-	prompt := fmt.Sprintf("%s: ", title(name))
-
-	if defaultValue != "" {
-		prompt = fmt.Sprintf("%s [%s]: ", title(name), defaultValue)
-	}
+	prompt := propertyPrompt(property, defaultValue)
 
 	for {
 		value, err := log.Read(prompt, 512)
@@ -213,6 +215,16 @@ func promptForProperty(property Property, directory string, now time.Time) (stri
 			return defaultValue, nil
 		}
 	}
+}
+
+func propertyPrompt(property Property, defaultValue string) string {
+	name := title(propertyName(property))
+
+	if defaultValue != "" {
+		return fmt.Sprintf("%s [%s]: ", name, defaultValue)
+	}
+
+	return fmt.Sprintf("%s: ", name)
 }
 
 func defaultProperty(property Property, directory string, now time.Time) string {
