@@ -13,16 +13,39 @@ import (
 	"github.com/coalaura/plain"
 )
 
-func run() error {
+type Options struct {
+	License     string
+	Author      string
+	Year        string
+	Name        string
+	Description string
+}
+
+func (options Options) property(property Property) string {
+	switch property {
+	case PropertyYear:
+		return options.Year
+	case PropertyAuthor:
+		return options.Author
+	case PropertyName:
+		return options.Name
+	case PropertyDescription:
+		return options.Description
+	default:
+		return ""
+	}
+}
+
+func run(options Options) error {
 	directory, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("get working directory: %w", err)
 	}
 
-	return generateLicense(directory, time.Now())
+	return generateLicense(options, directory, time.Now())
 }
 
-func generateLicense(directory string, now time.Time) error {
+func generateLicense(options Options, directory string, now time.Time) error {
 	existing, found, err := findExistingLicense(directory)
 	if err != nil {
 		return fmt.Errorf("look for an existing license: %w", err)
@@ -41,7 +64,7 @@ func generateLicense(directory string, now time.Time) error {
 		}
 	}
 
-	license, err := promptForLicense(directory, now)
+	license, err := promptForLicense(options, directory, now)
 	if err != nil {
 		return err
 	}
@@ -115,27 +138,45 @@ func generateLicense(directory string, now time.Time) error {
 	return nil
 }
 
-func promptForLicense(directory string, now time.Time) (License, error) {
-	options := make([]plain.SelectOption, len(licenses))
+func promptForLicense(settings Options, directory string, now time.Time) (License, error) {
+	var license License
 
-	for index, license := range licenses {
-		options[index] = license
+	if settings.License != "" {
+		var found bool
+
+		license, found = findLicense(settings.License)
+		if !found {
+			return License{}, fmt.Errorf("unknown license %q", settings.License)
+		}
+	} else {
+		options := make([]plain.SelectOption, len(licenses))
+
+		for index, available := range licenses {
+			options[index] = available
+		}
+
+		index, err := log.SelectWithDescription("Choose a license: ", options)
+		if err != nil {
+			return License{}, fmt.Errorf("select license: %w", err)
+		}
+
+		if index < 0 || index >= len(licenses) {
+			return License{}, fmt.Errorf("select license: invalid selection %d", index)
+		}
+
+		license = licenses[index]
 	}
-
-	index, err := log.SelectWithDescription("Choose a license: ", options)
-	if err != nil {
-		return License{}, fmt.Errorf("select license: %w", err)
-	}
-
-	if index < 0 || index >= len(licenses) {
-		return License{}, fmt.Errorf("select license: invalid selection %d", index)
-	}
-
-	license := licenses[index]
 
 	license.Properties = make(map[Property]string, len(license.RequiredProperties))
 
 	for _, property := range license.RequiredProperties {
+		value := settings.property(property)
+		if value != "" {
+			license.Properties[property] = value
+
+			continue
+		}
+
 		value, err := promptForProperty(property, directory, now)
 		if err != nil {
 			return License{}, err

@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"strings"
 )
 
 type Property int
@@ -51,6 +52,34 @@ var (
 		NewLicense("LGPLv3", "Library-focused copyleft that permits proprietary linking.", licenseLGPL3, nil),
 		NewLicense("AGPLv3", "Strong copyleft that also covers software used over a network.", licenseAGPL3, []Property{PropertyYear, PropertyAuthor, PropertyName, PropertyDescription}),
 		NewLicense("MPL 2.0", "File-level copyleft that can be combined with proprietary code.", licenseMPL2, nil),
+	}
+
+	licenseAliases = map[string]string{
+		"mit": "MIT",
+
+		"apache":    "Apache 2.0",
+		"apache2":   "Apache 2.0",
+		"apache20":  "Apache 2.0",
+		"apachev2":  "Apache 2.0",
+		"apachev20": "Apache 2.0",
+
+		"gpl":   "GPLv3",
+		"gpl3":  "GPLv3",
+		"gplv3": "GPLv3",
+
+		"lgpl":   "LGPLv3",
+		"lgpl3":  "LGPLv3",
+		"lgplv3": "LGPLv3",
+
+		"agpl":   "AGPLv3",
+		"agpl3":  "AGPLv3",
+		"agplv3": "AGPLv3",
+
+		"mpl":    "MPL 2.0",
+		"mpl2":   "MPL 2.0",
+		"mpl20":  "MPL 2.0",
+		"mplv2":  "MPL 2.0",
+		"mplv20": "MPL 2.0",
 	}
 )
 
@@ -134,6 +163,42 @@ func NewLicense(name, summary string, text []byte, properties []Property) Licens
 		RequiredProperties: append([]Property(nil), properties...),
 		Properties:         propertyMap,
 	}
+}
+
+func findLicense(value string) (License, bool) {
+	alias := normalizeLicenseName(value)
+
+	name, found := licenseAliases[alias]
+	if !found {
+		return License{}, false
+	}
+
+	for _, license := range licenses {
+		if license.Name == name {
+			return license, true
+		}
+	}
+
+	return License{}, false
+}
+
+func normalizeLicenseName(value string) string {
+	value = strings.ToLower(value)
+
+	var normalized strings.Builder
+
+	normalized.Grow(len(value))
+
+	for _, character := range value {
+		letter := character >= 'a' && character <= 'z'
+		digit := character >= '0' && character <= '9'
+
+		if letter || digit {
+			normalized.WriteRune(character)
+		}
+	}
+
+	return normalized.String()
 }
 
 func getPropertyFromName(name []byte) Property {
