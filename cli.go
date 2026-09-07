@@ -241,7 +241,19 @@ func defaultProperty(property Property, directory string, now time.Time) string 
 }
 
 func repositoryOwner(directory string) string {
-	command := exec.Command("git", "config", "--get", "remote.origin.url")
+	remote := gitConfig(directory, "remote.origin.url")
+
+	owner := ownerFromRemote(remote)
+	if owner != "" {
+		return owner
+	}
+
+	return gitConfig(directory, "user.name")
+}
+
+func gitConfig(directory, key string) string {
+	command := exec.Command("git", "config", "--get", key)
+
 	command.Dir = directory
 
 	output, err := command.Output()
@@ -249,7 +261,7 @@ func repositoryOwner(directory string) string {
 		return ""
 	}
 
-	return ownerFromRemote(string(output))
+	return strings.TrimSpace(string(output))
 }
 
 func ownerFromRemote(remote string) string {
