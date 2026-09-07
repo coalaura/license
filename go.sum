@@ -1,7 +1,7 @@
 github.com/coalaura/atom v0.1.0 h1:SIDBPkN/yIs9mmj9mTyDLjTkL6RLs+Ayv6NAMiUvSNE=
 github.com/coalaura/atom v0.1.0/go.mod h1:7pDe9uBEj3+qeHhpGdpvlvRp0JR17sEAZdAW+8vhc9M=
-github.com/coalaura/plain v1.5.1 h1:YSMlRGrSEsFYNq/tiYp/gMQqVfTvSgxepDO2AnIW8hw=
-github.com/coalaura/plain v1.5.1/go.mod h1:Fqnxr6EaXiVJMtvZtV6p4LpiucuGqYcy6Vwor+Gkoek=
+github.com/coalaura/plain v1.5.2 h1:Gt6mjPL52B4zYfCXS3PPy7Kr06C9TCgsiES/pn+ihec=
+github.com/coalaura/plain v1.5.2/go.mod h1:bwJF5y4zwQjY7rTJFHHLPsXxDVCy0N+66fsLNYLYd6Q=
 github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=
 github.com/felixge/httpsnoop v1.1.0/go.mod h1:Zqxgdd+1Rkcz8euOqdr7lqgCRJztwr5hp9vDSi5UZCE=
 golang.org/x/sys v0.47.0 h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=

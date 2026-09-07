@@ -17,6 +17,7 @@ const maximumPropertyLength = 1024
 
 type Prompter interface {
 	Confirm(prompt string, defaultYes bool) (bool, error)
+	Println(a ...any)
 	Read(prompt string, max int) (string, error)
 	SelectWithDescription(prompt string, options []plain.SelectOption) (int, error)
 }
@@ -117,6 +118,8 @@ func generateLicense(prompter Prompter, directory string, now time.Time) error {
 			return fmt.Errorf("remove old license: %w", err)
 		}
 	}
+
+	prompter.Println("Wrote LICENSE.")
 
 	return nil
 }
