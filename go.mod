@@ -2,7 +2,7 @@ module github.com/coalaura/license
 
 go 1.27.0
 
-require github.com/coalaura/plain v1.5.2
+require github.com/coalaura/plain v1.5.3
 
 require (
 	github.com/coalaura/atom v0.1.0 // indirect
