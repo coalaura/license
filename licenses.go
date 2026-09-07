@@ -18,10 +18,11 @@ const (
 )
 
 type License struct {
-	Name        string
-	Description string
-	Text        []byte
-	Properties  map[Property]string
+	Name               string
+	Summary            string
+	Text               []byte
+	RequiredProperties []Property
+	Properties         map[Property]string
 }
 
 var (
@@ -44,14 +45,22 @@ var (
 	licenseMPL2 []byte
 
 	licenses = []License{
-		NewLicense("MIT", "", licenseMIT, []Property{PropertyYear, PropertyAuthor}),
-		NewLicense("MPL 2.0", "", licenseMPL2, nil),
-		NewLicense("GPLv3", "", licenseGPL3, []Property{PropertyYear, PropertyAuthor, PropertyName, PropertyDescription}),
-		NewLicense("AGPLv3", "", licenseAGPL3, []Property{PropertyYear, PropertyAuthor, PropertyName, PropertyDescription}),
-		NewLicense("LGPLv3", "", licenseLGPL3, nil),
-		NewLicense("Apache 2.0", "", licenseApache2, []Property{PropertyYear, PropertyAuthor}),
+		NewLicense("MIT", "Simple and permissive, with minimal restrictions on reuse.", licenseMIT, []Property{PropertyYear, PropertyAuthor}),
+		NewLicense("Apache 2.0", "Permissive, with an explicit patent grant from contributors.", licenseApache2, []Property{PropertyYear, PropertyAuthor}),
+		NewLicense("GPLv3", "Strong copyleft requiring derivatives to remain open source.", licenseGPL3, []Property{PropertyYear, PropertyAuthor, PropertyName, PropertyDescription}),
+		NewLicense("LGPLv3", "Library-focused copyleft that permits proprietary linking.", licenseLGPL3, nil),
+		NewLicense("AGPLv3", "Strong copyleft that also covers software used over a network.", licenseAGPL3, []Property{PropertyYear, PropertyAuthor, PropertyName, PropertyDescription}),
+		NewLicense("MPL 2.0", "File-level copyleft that can be combined with proprietary code.", licenseMPL2, nil),
 	}
 )
+
+func (l License) Label() string {
+	return l.Name
+}
+
+func (l License) Description() string {
+	return l.Summary
+}
 
 func (l License) Write(wr io.Writer) error {
 	var index int
@@ -111,7 +120,7 @@ func (l License) Write(wr io.Writer) error {
 	return nil
 }
 
-func NewLicense(name, description string, text []byte, properties []Property) License {
+func NewLicense(name, summary string, text []byte, properties []Property) License {
 	propertyMap := make(map[Property]string, len(properties))
 
 	for _, property := range properties {
@@ -119,10 +128,11 @@ func NewLicense(name, description string, text []byte, properties []Property) Li
 	}
 
 	return License{
-		Name:        name,
-		Description: description,
-		Text:        text,
-		Properties:  propertyMap,
+		Name:               name,
+		Summary:            summary,
+		Text:               text,
+		RequiredProperties: append([]Property(nil), properties...),
+		Properties:         propertyMap,
 	}
 }
 

@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func FindLicense() (string, bool, error) {
-	dir, err := os.Open(".")
+func findExistingLicense(path string) (string, bool, error) {
+	dir, err := os.Open(path)
 	if err != nil {
 		return "", false, err
 	}
