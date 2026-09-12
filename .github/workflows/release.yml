@@ -65,47 +65,18 @@ jobs:
           go-flags: |
             -ldflags=-X main.Version=${{ github.ref_name }}
 
-      - name: Upload binary
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ env.BINARY_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: ${{ steps.build.outputs.path }}
-          if-no-files-found: error
-          retention-days: 1
-
-  sign:
-    needs: build
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        goos:
-          - windows
-          - linux
-          - darwin
-        goarch:
-          - amd64
-          - arm64
-
-    steps:
-      - name: Download binary
-        uses: actions/download-artifact@v8
-        with:
-          name: ${{ env.BINARY_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist
-
-      - name: Sign binary
+      - name: Sign
         id: sign
         uses: coalaura/sign@v1
         with:
-          path: dist/${{ env.BINARY_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+          path: ${{ steps.build.outputs.path }}
           key: ${{ secrets.COALAURA_PFX }}
           passphrase: ${{ secrets.COALAURA_PFX_PASSWORD }}
           chain: |
             https://wiese2.org/pki/issuing.pem
             https://wiese2.org/pki/root.pem
 
-      - name: Upload signed binary
+      - name: Upload
         uses: actions/upload-artifact@v7
         with:
           name: signed-${{ env.BINARY_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}
@@ -114,7 +85,7 @@ jobs:
           retention-days: 1
 
   release:
-    needs: sign
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
